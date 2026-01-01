@@ -2,7 +2,7 @@
 nixPkgs = ["nodejs_20", "yarn"]
 
 [phases.install]
-cmds = ["yarn install --ignore-optional --network-timeout 100000"]
+cmds = ["yarn install --network-timeout 100000"]
 
 [phases.build]
 cmds = ["yarn build"]
