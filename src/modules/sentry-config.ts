@@ -5,21 +5,38 @@
 
 import * as Sentry from "@sentry/node"
 
+// Try to load profiling integration (optional - fails gracefully on Railway)
+let ProfilingIntegration: any = null
+try {
+  const profiling = require("@sentry/profiling-node")
+  ProfilingIntegration = profiling.ProfilingIntegration
+} catch (error) {
+  console.warn("Sentry profiling not available - CPU/memory profiling disabled")
+}
+
 export function initializeSentry(): void {
   if (!process.env.SENTRY_DSN) {
     console.warn("Sentry DSN not configured - error tracking disabled")
     return
   }
 
+  const integrations: any[] = [
+    new Sentry.Integrations.Http({ tracing: true }),
+    new Sentry.Integrations.OnUncaughtException(),
+    new Sentry.Integrations.OnUnhandledRejection(),
+  ]
+
+  // Add profiling if available
+  if (ProfilingIntegration) {
+    integrations.push(new ProfilingIntegration())
+  }
+
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
     environment: process.env.NODE_ENV || "development",
     tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
-    integrations: [
-      new Sentry.Integrations.Http({ tracing: true }),
-      new Sentry.Integrations.OnUncaughtException(),
-      new Sentry.Integrations.OnUnhandledRejection(),
-    ],
+    profilesSampleRate: ProfilingIntegration ? 0.1 : 0, // Only enable if profiling available
+    integrations,
     beforeSend(event, hint) {
       // Filter out certain errors in development
       if (process.env.NODE_ENV === "development") {

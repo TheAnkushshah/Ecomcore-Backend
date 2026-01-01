@@ -34,6 +34,7 @@
     "@mikro-orm/migrations": "6.4.3",
     "@mikro-orm/postgresql": "6.4.3",
     "@sentry/node": "^7.91.0",
+    "@sentry/profiling-node": "^7.91.0",
     "awilix": "^8.0.1",
     "express-rate-limit": "^7.1.5",
     "helmet": "^7.1.0",
