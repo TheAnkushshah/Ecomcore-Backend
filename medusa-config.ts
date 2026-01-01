@@ -53,21 +53,5 @@ module.exports = defineConfig({
           },
         ]
       : []),
-    // File storage module (S3/R2/Spaces)
-    ...(process.env.AWS_ACCESS_KEY_ID
-      ? [
-          {
-            resolve: "@medusajs/file-s3",
-            options: {
-              file_url_base: process.env.AWS_PUBLIC_URL || `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com`,
-              aws_url: process.env.AWS_ENDPOINT,
-              access_key_id: process.env.AWS_ACCESS_KEY_ID,
-              secret_access_key: process.env.AWS_SECRET_ACCESS_KEY,
-              region: process.env.AWS_REGION || "us-east-1",
-              bucket: process.env.AWS_BUCKET_NAME,
-            },
-          },
-        ]
-      : []),
   ],
 })
