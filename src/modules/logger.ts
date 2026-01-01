@@ -58,7 +58,7 @@ if (process.env.NODE_ENV === "production") {
     new DailyRotateFile({
       filename: "logs/error-%DATE%.log",
       datePattern: "YYYY-MM-DD",
-      maxDays: "14d",
+      maxFiles: "14d",
       level: "error",
       format: logFormat,
     })
@@ -69,7 +69,7 @@ if (process.env.NODE_ENV === "production") {
     new DailyRotateFile({
       filename: "logs/combined-%DATE%.log",
       datePattern: "YYYY-MM-DD",
-      maxDays: "7d",
+      maxFiles: "7d",
       format: logFormat,
     })
   )
@@ -79,7 +79,7 @@ if (process.env.NODE_ENV === "production") {
     new DailyRotateFile({
       filename: "logs/application-%DATE%.log",
       datePattern: "YYYY-MM-DD",
-      maxDays: "7d",
+      maxFiles: "7d",
       level: "info",
       format: logFormat,
     })

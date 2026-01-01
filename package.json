@@ -47,7 +47,6 @@
     "@medusajs/test-utils": "2.8.8",
     "@mikro-orm/cli": "6.4.3",
     "@swc/core": "1.5.7",
-    "@sentry/profiling-node": "^7.91.0",
     "@swc/jest": "^0.2.36",
     "@types/jest": "^29.5.13",
     "@types/node": "^20.0.0",
@@ -64,6 +63,9 @@
     "yalc": "^1.0.0-pre.53"
   },
   "engines": {
-    "node": ">=20"
-  }
+    "node": ">=20.0.0",
+    "yarn": ">=1.22.0",
+    "npm": "FORBIDDEN - Use Yarn only"
+  },
+  "packageManager": "yarn@1.22.22"
 }
