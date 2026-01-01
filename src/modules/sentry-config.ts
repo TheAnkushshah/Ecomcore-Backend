@@ -4,7 +4,6 @@
  */
 
 import * as Sentry from "@sentry/node"
-import { ProfilingIntegration } from "@sentry/profiling-node"
 
 export function initializeSentry(): void {
   if (!process.env.SENTRY_DSN) {
@@ -16,9 +15,7 @@ export function initializeSentry(): void {
     dsn: process.env.SENTRY_DSN,
     environment: process.env.NODE_ENV || "development",
     tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
-    profilesSampleRate: 0.1,
     integrations: [
-      new ProfilingIntegration(),
       new Sentry.Integrations.Http({ tracing: true }),
       new Sentry.Integrations.OnUncaughtException(),
       new Sentry.Integrations.OnUnhandledRejection(),
