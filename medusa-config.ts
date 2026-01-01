@@ -25,14 +25,14 @@ module.exports = defineConfig({
       options: {
         redisUrl: process.env.REDIS_URL,
         ttl: 30,
-        tls: process.env.REDIS_TLS === "true" ? {} : undefined,
+        tls: process.env.REDIS_TLS === "true" ? { rejectUnauthorized: false } : undefined,
       },
     },
     {
       resolve: "@medusajs/medusa/event-bus-redis",
       options: {
         redisUrl: process.env.REDIS_URL,
-        tls: process.env.REDIS_TLS === "true" ? {} : undefined,
+        tls: process.env.REDIS_TLS === "true" ? { rejectUnauthorized: false } : undefined,
       },
     },
     {
@@ -40,7 +40,7 @@ module.exports = defineConfig({
       options: {
         redis: {
           url: process.env.REDIS_URL,
-          tls: process.env.REDIS_TLS === "true" ? {} : undefined,
+          tls: process.env.REDIS_TLS === "true" ? { rejectUnauthorized: false } : undefined,
         },
       },
     },
