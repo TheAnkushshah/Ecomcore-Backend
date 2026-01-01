@@ -68,7 +68,7 @@ describe("Logger", () => {
 
     it("should log request with method and path", () => {
       const spy = jest.spyOn({ logRequest }, "logRequest")
-      logRequest("GET", "/api/users", "request-123")
+      logRequest("GET", "/api/users", 200, 125, "user-123")
       expect(typeof logRequest).toBe("function")
     })
   })
@@ -80,7 +80,7 @@ describe("Logger", () => {
 
     it("should log database query", () => {
       const spy = jest.spyOn({ logDatabaseQuery }, "logDatabaseQuery")
-      logDatabaseQuery("SELECT * FROM users", 150, true)
+      logDatabaseQuery("SELECT * FROM users", 150, { limit: 10 })
       expect(typeof logDatabaseQuery).toBe("function")
     })
   })
