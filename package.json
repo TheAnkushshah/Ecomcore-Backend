@@ -55,8 +55,5 @@
   },
   "engines": {
     "node": ">=20"
-  },
-  "optionalDependencies": {
-    "@swc/core-win32-x64": "*"
   }
 }
