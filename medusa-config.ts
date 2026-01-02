@@ -9,7 +9,11 @@ if (process.env.NODE_ENV === "production" && process.env.SENTRY_DSN) {
 
 module.exports = defineConfig({
   admin: {
-    backendUrl: process.env.MEDUSA_BACKEND_URL,
+    backendUrl: process.env.MEDUSA_BACKEND_URL || (
+      process.env.NODE_ENV === "production"
+        ? "https://ecomcore-backend-production.up.railway.app"
+        : "http://localhost:9000"
+    ),
     disable: process.env.DISABLE_MEDUSA_ADMIN === "true",
   },
 
