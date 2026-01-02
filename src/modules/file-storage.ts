@@ -44,6 +44,9 @@ export class FileStorageService {
 
   /**
    * Upload file to S3/R2/Spaces
+   * 
+   * CRITICAL: Sets ContentDisposition: "inline" to prevent downloads
+   * This ensures images open in browser tabs instead of downloading
    */
   async uploadFile(
     fileBuffer: Buffer,
@@ -54,6 +57,7 @@ export class FileStorageService {
     try {
       const key = `${folder}/${Date.now()}-${fileName}`
 
+      // ✅ CRITICAL: Ensure proper headers for image display
       const upload = new this.upload({
         client: this.s3Client,
         params: {
@@ -61,12 +65,15 @@ export class FileStorageService {
           Key: key,
           Body: fileBuffer,
           ContentType: contentType,
+          // 🔹 MANDATORY: Prevents images from downloading instead of opening
+          ContentDisposition: "inline",
           ACL: "public-read", // Make files publicly accessible
         },
       })
 
       await upload.done()
 
+      // ✅ CRITICAL: Use production URL, never localhost
       const url = this.config.publicUrl
         ? `${this.config.publicUrl}/${key}`
         : `https://${this.config.bucket}.s3.${this.config.region}.amazonaws.com/${key}`
