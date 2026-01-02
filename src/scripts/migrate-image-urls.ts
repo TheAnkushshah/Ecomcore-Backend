@@ -6,7 +6,7 @@
  * ✅ Fix incorrect S3/R2 paths
  * ✅ Ensure all images have proper inline disposition
  * 
- * Run this BEFORE uploading new images in production
+ * Run this AFTER deploying to production with proper environment variables
  * 
  * Usage:
  *   yarn medusa exec ./src/scripts/migrate-image-urls.ts
@@ -15,128 +15,164 @@
 import { logger } from "../modules/logger"
 
 export default async function migrateImageUrls({ container }: any) {
-  const dbConnection = container.resolve("database")
-  const manager = dbConnection.manager
-
   try {
     logger.info("🚀 Starting image URL migration...")
 
-    // ✅ Step 1: Replace localhost URLs with production URL
+    // Get production URL from environment
     const productionUrl =
+      process.env.AWS_PUBLIC_URL ||
       process.env.BACKEND_URL ||
       process.env.MEDUSA_BACKEND_URL ||
       "https://ecomcore-backend-production.up.railway.app"
 
-    logger.info(`Replacing localhost URLs with: ${productionUrl}`)
+    logger.info(`Production URL: ${productionUrl}`)
 
-    const localhostReplacement = await manager.query(`
-      UPDATE image
-      SET url = REPLACE(
-        url,
-        'http://localhost:9000',
-        $1
-      )
-      WHERE url LIKE '%localhost:9000%'
-    `, [productionUrl])
-
-    logger.info(
-      `✅ Fixed ${localhostReplacement.rowCount || 0} localhost URLs`
-    )
-
-    // ✅ Step 2: Verify no localhost URLs remain
-    const remainingBadUrls = await manager.query(`
-      SELECT id, url 
-      FROM image 
-      WHERE url LIKE '%localhost:%' 
-         OR url LIKE '%127.0.0.1%'
-    `)
-
-    if (remainingBadUrls.length > 0) {
-      logger.warn(`⚠️  Found ${remainingBadUrls.length} remaining localhost URLs:`)
-      remainingBadUrls.forEach((img: any) => {
-        logger.warn(`   ID: ${img.id} | URL: ${img.url}`)
-      })
-    } else {
-      logger.info("✅ No localhost URLs remaining")
+    // Check if we're running in development with localhost
+    if (productionUrl.includes("localhost")) {
+      logger.warn("⚠️  Running in development mode - no migration needed")
+      logger.info("✅ Migration skipped (localhost environment)")
+      return
     }
 
-    // ✅ Step 3: Ensure all URLs are HTTPS (except for dev)
-    if (process.env.NODE_ENV === "production") {
-      const httpUrls = await manager.query(`
-        SELECT COUNT(*) as count 
-        FROM image 
-        WHERE url LIKE 'http://%' 
-          AND url NOT LIKE '%localhost%'
-      `)
+    // Get the product module service
+    const productModuleService = container.resolve("product")
 
-      if (httpUrls[0]?.count > 0) {
-        logger.warn(
-          `⚠️  Found ${httpUrls[0].count} non-HTTPS URLs in production - consider upgrading`
-        )
+    // Fetch all products with their images
+    const products = await productModuleService.listProducts(
+      {},
+      { 
+        relations: ["images"],
+        take: 1000 // Adjust if you have more products
+      }
+    )
 
-        // Auto-fix: Convert HTTP to HTTPS for CDN/S3
-        await manager.query(`
-          UPDATE image
-          SET url = REPLACE(url, 'http://', 'https://')
-          WHERE url LIKE 'http://%'
-            AND url NOT LIKE '%localhost%'
-        `)
+    if (!products || products.length === 0) {
+      logger.info("✅ No products found in database - nothing to migrate")
+      return
+    }
 
-        logger.info(`✅ Upgraded HTTP URLs to HTTPS`)
+    logger.info(`Found ${products.length} products to check`)
+
+    let totalImages = 0
+    let fixedCount = 0
+    let localhostCount = 0
+    let httpsCount = 0
+    let httpCount = 0
+    let s3Count = 0
+    let r2Count = 0
+
+    // Process each product and its images
+    for (const product of products) {
+      if (!product.images || product.images.length === 0) continue
+
+      for (const image of product.images) {
+        totalImages++
+        let needsUpdate = false
+        let newUrl = image.url
+
+        // Count storage types
+        if (image.url.includes(".s3.") || image.url.includes("amazonaws.com")) {
+          s3Count++
+        }
+        if (image.url.includes(".r2.") || image.url.includes("cloudflarestorage.com")) {
+          r2Count++
+        }
+
+        // Check for localhost URLs
+        if (image.url.includes("localhost") || image.url.includes("127.0.0.1")) {
+          localhostCount++
+          newUrl = image.url.replace(/http:\/\/localhost:\d+/g, productionUrl)
+          needsUpdate = true
+          logger.info(`  Fixing localhost URL: ${image.url} → ${newUrl}`)
+        }
+
+        // Check for HTTP (non-HTTPS) URLs in production
+        if (
+          process.env.NODE_ENV === "production" &&
+          newUrl.startsWith("http://") &&
+          !newUrl.includes("localhost")
+        ) {
+          httpCount++
+          newUrl = newUrl.replace("http://", "https://")
+          needsUpdate = true
+          logger.info(`  Upgrading to HTTPS: ${image.url} → ${newUrl}`)
+        }
+
+        // Update if needed
+        if (needsUpdate) {
+          const updatedMetadata = {
+            ...(image.metadata || {}),
+            fixed_at: new Date().toISOString(),
+            original_url: image.url,
+          }
+
+          await productModuleService.updateProductImages(
+            product.id,
+            [
+              {
+                id: image.id,
+                url: newUrl,
+                metadata: updatedMetadata,
+              }
+            ]
+          )
+
+          fixedCount++
+        }
+
+        // Count HTTPS URLs
+        if (newUrl.startsWith("https://")) {
+          httpsCount++
+        } else if (newUrl.startsWith("http://")) {
+          httpCount++
+        }
       }
     }
 
-    // ✅ Step 4: Update metadata for tracking
-    const updatedAt = new Date().toISOString()
-    await manager.query(`
-      UPDATE image
-      SET metadata = JSONB_SET(
-        COALESCE(metadata, '{}'),
-        '{fixed_at}',
-        to_jsonb($1::text)
-      )
-      WHERE url NOT LIKE '%localhost%'
-        AND metadata->>'fixed_at' IS NULL
-    `, [updatedAt])
-
-    logger.info("✅ Updated metadata with fix timestamp")
-
-    // ✅ Step 5: Summary report
-    const urlStats = await manager.query(`
-      SELECT 
-        COUNT(*) as total_images,
-        COUNT(CASE WHEN url LIKE 'https://%' THEN 1 END) as https_count,
-        COUNT(CASE WHEN url LIKE 'http://%' THEN 1 END) as http_count,
-        COUNT(CASE WHEN url LIKE '%localhost%' THEN 1 END) as localhost_count,
-        COUNT(CASE WHEN url LIKE '%.s3.%' THEN 1 END) as s3_count,
-        COUNT(CASE WHEN url LIKE '%.r2.%' THEN 1 END) as r2_count
-      FROM image
-    `)
-
-    const stats = urlStats[0]
+    // Summary report
     logger.info(`
 ╔════════════════════════════════════════════════════════════╗
 ║           IMAGE URL MIGRATION REPORT                       ║
 ╠════════════════════════════════════════════════════════════╣
-║ Total Images:          ${String(stats.total_images).padEnd(40)}║
-║ HTTPS URLs:            ${String(stats.https_count).padEnd(40)}║
-║ HTTP URLs:             ${String(stats.http_count).padEnd(40)}║
-║ Localhost URLs:        ${String(stats.localhost_count).padEnd(40)}║
-║ S3 Stored:             ${String(stats.s3_count).padEnd(40)}║
-║ R2 Stored:             ${String(stats.r2_count).padEnd(40)}║
+║ Total Images:          ${String(totalImages).padEnd(40)}║
+║ Fixed URLs:            ${String(fixedCount).padEnd(40)}║
+║ HTTPS URLs:            ${String(httpsCount).padEnd(40)}║
+║ HTTP URLs:             ${String(httpCount).padEnd(40)}║
+║ Localhost URLs Fixed:  ${String(localhostCount).padEnd(40)}║
+║ S3 Stored:             ${String(s3Count).padEnd(40)}║
+║ R2 Stored:             ${String(r2Count).padEnd(40)}║
 ╚════════════════════════════════════════════════════════════╝
     `)
 
-    if (stats.localhost_count === 0) {
+    // Final verification - check if any localhost URLs remain
+    const verifyProducts = await productModuleService.listProducts(
+      {},
+      { relations: ["images"] }
+    )
+
+    const badUrls: Array<{ id: any; url: any }> = []
+    for (const product of verifyProducts) {
+      if (!product.images) continue
+      for (const image of product.images) {
+        if (image.url.includes("localhost") || image.url.includes("127.0.0.1")) {
+          badUrls.push({ id: image.id, url: image.url })
+        }
+      }
+    }
+
+    if (badUrls.length === 0) {
       logger.info("✅ MIGRATION COMPLETE - All URLs are production-safe!")
     } else {
-      logger.error(
-        `❌ MIGRATION INCOMPLETE - ${stats.localhost_count} localhost URLs remain`
-      )
+      logger.error(`❌ MIGRATION INCOMPLETE - ${badUrls.length} localhost URLs remain:`)
+      badUrls.forEach((img: any) => {
+        logger.error(`   ID: ${img.id} | URL: ${img.url}`)
+      })
       process.exit(1)
     }
   } catch (error) {
     logger.error("Migration failed:", error)
-    process.exit(1)
+    throw error
   }
 }
+
+
