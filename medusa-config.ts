@@ -7,13 +7,16 @@ if (process.env.NODE_ENV === "production" && process.env.SENTRY_DSN) {
   require("./src/modules/sentry-config").initializeSentry()
 }
 
+// 🔹 Set the backend URL - prioritize BACKEND_URL over Railway's public domain
+const backendUrl = process.env.BACKEND_URL || 
+                   process.env.MEDUSA_BACKEND_URL || 
+                   (process.env.NODE_ENV === "production"
+                     ? "https://ecomcore-backend-production.up.railway.app"
+                     : "http://localhost:9000")
+
 module.exports = defineConfig({
   admin: {
-    backendUrl: process.env.MEDUSA_BACKEND_URL || (
-      process.env.NODE_ENV === "production"
-        ? "https://ecomcore-backend-production.up.railway.app"
-        : "http://localhost:9000"
-    ),
+    backendUrl,
     disable: process.env.DISABLE_MEDUSA_ADMIN === "true",
   },
 
