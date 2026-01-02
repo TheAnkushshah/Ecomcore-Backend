@@ -12,10 +12,9 @@
  *   yarn medusa exec ./src/scripts/migrate-image-urls.ts
  */
 
-import { ExecArgs } from "@medusajs/framework"
 import { logger } from "../modules/logger"
 
-export default async function migrateImageUrls({ container }: ExecArgs) {
+export default async function migrateImageUrls({ container }: any) {
   const dbConnection = container.resolve("database")
   const manager = dbConnection.manager
 
