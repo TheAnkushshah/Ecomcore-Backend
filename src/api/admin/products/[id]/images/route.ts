@@ -66,6 +66,21 @@ export async function POST(
       })
     }
 
+    // 🔹 DEBUG: Check file object from multer
+    console.log("\n=== MULTER FILE DEBUG ===")
+    console.log(`📄 Filename: ${file.originalname || file.filename}`)
+    console.log(`📦 Buffer type: ${typeof file.buffer}`)
+    console.log(`✅ Is Buffer: ${Buffer.isBuffer(file.buffer)}`)
+    console.log(`📊 Buffer length: ${file.size || file.buffer?.length || 0} bytes`)
+    
+    if (file.buffer && file.buffer.length > 0) {
+      const headerHex = Array.from(file.buffer.slice(0, 16))
+        .map((byte: number) => (byte as number).toString(16).toUpperCase().padStart(2, "0"))
+        .join(" ")
+      console.log(`🖼️  First 16 bytes: ${headerHex}`)
+    }
+    console.log("=======================\n")
+
     // 🔹 Validate file metadata
     const fileValidation = FileUploadSchema.safeParse({
       filename: file.originalname || file.filename || "image",
