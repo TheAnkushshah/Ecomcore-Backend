@@ -1996,10 +1996,10 @@
   resolved "https://registry.yarnpkg.com/@medusajs/file-local/-/file-local-2.8.8.tgz#536e85a124ff465ae9b2627e43477f0680ec4bcf"
   integrity sha512-rZbXAer6Quo8T/xf4h8TrWhEUlrDdqjSuLH4liilLfVi2LpxGyHc9mKNRb/beBJ0/+B6M51itEd8sE1QTixeng==
 
-"@medusajs/file-s3@2.8.3", "@medusajs/file-s3@2.8.8":
-  version "2.8.3"
-  resolved "https://registry.yarnpkg.com/@medusajs/file-s3/-/file-s3-2.8.3.tgz#c849f962f4dd9d3ebf8eb09d31d92b4c9696a03e"
-  integrity sha512-86gnW2y71riPFHjs3IzXpIEeYDrV8tfzN+TjM1H1lYCEU6XjzsCj1qam1WeHKYiD9pGI/a/MKI4ZzGXAogL/Fg==
+"@medusajs/file-s3@2.8.8":
+  version "2.8.8"
+  resolved "https://registry.yarnpkg.com/@medusajs/file-s3/-/file-s3-2.8.8.tgz#32cf02a5fbb029759c0d03e9220219b7d93f5b2a"
+  integrity sha512-xZKuKsr0JnNNbG4xh1fU6qpAghamHbRPrZ4K3ByEOfnA5ulbTp9RvW0sKRmObPV2xSOr+BjHCaBkiOCl1PlYZw==
   dependencies:
     "@aws-sdk/client-s3" "^3.556.0"
     "@aws-sdk/s3-request-presigner" "^3.556.0"
