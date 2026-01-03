@@ -394,7 +394,7 @@
     "@smithy/types" "^4.11.0"
     tslib "^2.6.2"
 
-"@aws-sdk/lib-storage@^3.500.0", "@aws-sdk/lib-storage@^3.556.0":
+"@aws-sdk/lib-storage@^3.500.0":
   version "3.962.0"
   resolved "https://registry.yarnpkg.com/@aws-sdk/lib-storage/-/lib-storage-3.962.0.tgz#b556741d91f714c94726990133d4ee78152e36f3"
   integrity sha512-Ai5gWRQkzsUMQ6NPoZZoiLXoQ6/yPRcR4oracIVjyWcu48TfBpsRgbqY/5zNOM55ag1wPX9TtJJGOhK3TNk45g==
@@ -1996,13 +1996,12 @@
   resolved "https://registry.yarnpkg.com/@medusajs/file-local/-/file-local-2.8.8.tgz#536e85a124ff465ae9b2627e43477f0680ec4bcf"
   integrity sha512-rZbXAer6Quo8T/xf4h8TrWhEUlrDdqjSuLH4liilLfVi2LpxGyHc9mKNRb/beBJ0/+B6M51itEd8sE1QTixeng==
 
-"@medusajs/file-s3@2.12.3", "@medusajs/file-s3@2.8.8", "@medusajs/file-s3@^2.12.3":
-  version "2.12.3"
-  resolved "https://registry.yarnpkg.com/@medusajs/file-s3/-/file-s3-2.12.3.tgz#62f220f4168c3f71061e50dede91e031c26a64d7"
-  integrity sha512-mWSImfJwIuyhdTI7SnXyPFNrVedflaZqc4PUbIUJJo1pdFhbWJ3kJiMOdIYu68tmXlID95MgVZ1eMFE994rKZA==
+"@medusajs/file-s3@2.8.3", "@medusajs/file-s3@2.8.8":
+  version "2.8.3"
+  resolved "https://registry.yarnpkg.com/@medusajs/file-s3/-/file-s3-2.8.3.tgz#c849f962f4dd9d3ebf8eb09d31d92b4c9696a03e"
+  integrity sha512-86gnW2y71riPFHjs3IzXpIEeYDrV8tfzN+TjM1H1lYCEU6XjzsCj1qam1WeHKYiD9pGI/a/MKI4ZzGXAogL/Fg==
   dependencies:
     "@aws-sdk/client-s3" "^3.556.0"
-    "@aws-sdk/lib-storage" "^3.556.0"
     "@aws-sdk/s3-request-presigner" "^3.556.0"
     ulid "^2.3.0"
 

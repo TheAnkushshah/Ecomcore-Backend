@@ -18,6 +18,16 @@ const S3_FILE_PATH = path.join(__dirname, '../../node_modules/@medusajs/file-s3/
 console.log('\n🔧 === PATCHING @medusajs/file-s3 MODULE ===\n');
 console.log(`📍 File: ${S3_FILE_PATH}`);
 
+// Check if using 2.8.3 (which doesn't have the bug)
+const packageJsonPath = path.join(__dirname, '../../node_modules/@medusajs/file-s3/package.json');
+const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+
+if (packageJson.version === '2.8.3' || packageJson.version.startsWith('2.8.')) {
+    console.log(`✅ Version ${packageJson.version} detected - No patch needed!`);
+    console.log('   This version already has correct Buffer handling.\n');
+    process.exit(0);
+}
+
 // Read the current file
 let content = fs.readFileSync(S3_FILE_PATH, 'utf8');
 
