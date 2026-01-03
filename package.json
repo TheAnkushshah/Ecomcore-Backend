@@ -33,7 +33,7 @@
     "@aws-sdk/lib-storage": "^3.500.0",
     "@medusajs/admin-sdk": "2.8.8",
     "@medusajs/cli": "2.8.8",
-    "@medusajs/file-s3": "2.8.3",
+    "@medusajs/file-s3": "2.8.8",
     "@medusajs/framework": "2.8.8",
     "@medusajs/medusa": "2.8.8",
     "@mikro-orm/core": "6.4.3",
@@ -76,7 +76,7 @@
     "yalc": "^1.0.0-pre.53"
   },
   "resolutions": {
-    "@medusajs/file-s3": "2.8.3"
+    "@medusajs/file-s3": "2.8.8"
   },
   "engines": {
     "node": ">=20.0.0",
