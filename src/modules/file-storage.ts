@@ -57,6 +57,33 @@ export class FileStorageService {
     try {
       const key = `${folder}/${Date.now()}-${fileName}`
 
+      // 🔹 CRITICAL DEBUG LOGGING - Check body type and bytes
+      console.log("\n=== S3 UPLOAD DEBUG ===")
+      console.log(`📄 File: ${fileName}`)
+      console.log(`🔑 Key: ${key}`)
+      console.log(`📦 Body type: ${typeof fileBuffer}`)
+      console.log(`✅ Is Buffer: ${Buffer.isBuffer(fileBuffer)}`)
+      console.log(`📊 Body length: ${fileBuffer.length} bytes`)
+      
+      // Check PNG signature if it's a PNG file
+      if (fileName.toLowerCase().endsWith('.png') && fileBuffer.length >= 8) {
+        const headerHex = Array.from(fileBuffer.slice(0, 8))
+          .map((byte) => byte.toString(16).toUpperCase().padStart(2, "0"))
+          .join(" ")
+        const validSignature = headerHex === "89 50 4E 47 0D 0A 1A 0A"
+        console.log(`🖼️  PNG Signature: ${headerHex}`)
+        console.log(`   Valid PNG: ${validSignature ? "✅" : "❌"}`)
+      } else if (contentType.includes('image/')) {
+        // Log first 16 bytes for any image
+        const headerHex = Array.from(fileBuffer.slice(0, 16))
+          .map((byte) => byte.toString(16).toUpperCase().padStart(2, "0"))
+          .join(" ")
+        console.log(`🖼️  First 16 bytes: ${headerHex}`)
+      }
+      
+      console.log(`📝 ContentType: ${contentType}`)
+      console.log("====================\n")
+
       // ✅ CRITICAL: Ensure proper headers for image display
       const upload = new this.upload({
         client: this.s3Client,
@@ -72,6 +99,7 @@ export class FileStorageService {
       })
 
       await upload.done()
+      console.log(`✅ Upload complete: ${key}`)
 
       // ✅ CRITICAL: Use production URL, never localhost
       const url = this.config.publicUrl
